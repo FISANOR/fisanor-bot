@@ -106,5 +106,10 @@ async def handle_order(message: types.Message):
     else:
         await message.answer("Пожалуйста, выберите товары из каталога.")
 
-if __name__ == '__main__':  # ← правильное сравнение name
-    executor.start_polling(dp, skip_updates=True)
+import asyncio
+
+async def main():
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
