@@ -103,7 +103,7 @@ async def handle_order(message: types.Message):
         order_text += f"\n\n📍 Адрес: {message.text}"
         await bot.send_message(ADMIN_ID, order_text)
         await message.answer("✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.")
-        user_cart[message.from_user.id] = []  # ← перенесено внутрь условия
+       user_cart[message.from_user.id] = []
     else:
         await message.answer("Пожалуйста, выберите товары из каталога.")
 
