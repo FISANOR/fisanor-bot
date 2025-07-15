@@ -2,7 +2,6 @@ import logging
 import asyncio
 from aiogram import Bot, Dispatcher, types
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.dispatcher.filters import Text
 
 API_TOKEN = '8138203975:AAE-q7SaDll1TOuFfB-inw3VsEjSowFlASM'
 ADMIN_ID = 5410641725
