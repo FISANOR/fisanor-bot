@@ -4,6 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher, types, Router, F
 from aiogram.enums.chat_member_status import ChatMemberStatus
 from aiogram.filters import Command
+from aiogram.filters import Text
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
@@ -65,11 +66,11 @@ products = {
     "cat_electronics": [
         {
             "name": "Пистолет массажёр",
-            "price": 450000,
+            "price": 105000,
             "photo": "https://i.imgur.com/sRPfAmq.jpeg"
         },
         {
-            "name": "Наушники",
+            "name": "Геймерский головной проводной наушники с RGB подсветкой",
             "price": 150000,
             "photo": "https://i.imgur.com/kP2j2NU.jpeg"  # пример, можешь поменять
         }
@@ -79,7 +80,7 @@ products = {
         {"name": "Мицеллярная вода", "price": 25000}
     ],
     "cat_home": [
-        {"name": "Комод", "price": 850000},
+        {"name": "Комод", "price": 4850000},
         {"name": "Этажерка для кухни", "price": 175000}
     ]
 }
@@ -101,7 +102,7 @@ async def start_cmd(message: Message):
     await message.answer("Добро пожаловать в FISANOR-market! Выберите действие:", reply_markup=main_kb)
 
 # Каталог
-@router.message(F.text == "🛍 Каталог")
+@router.message(Text(contains="Каталог"))
 async def show_catalog(message: Message):
     if not await check_subscriptions(message.from_user.id):
         await message.answer("Пожалуйста, подпишитесь на наши каналы, чтобы просматривать каталог и получить бесплатную доставку по Узбекистану!\n\nНажмите на кнопку \"📣 Каналы\" и подпишитесь на все каналы.")
