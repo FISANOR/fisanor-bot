@@ -12,9 +12,13 @@ bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
 # --- Категории ---
-main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
-main_kb.add("🛍 Каталог", "📦 Корзина")
-main_kb.add("🚚 Доставка и оплата", "📞 Поддержка")
+main_kb = ReplyKeyboardMarkup(
+    keyboard=[
+        [KeyboardButton(text="🛍 Каталог"), KeyboardButton(text="📦 Корзина")],
+        [KeyboardButton(text="🚚 Доставка и оплата"), KeyboardButton(text="📞 Поддержка")]
+    ],
+    resize_keyboard=True
+)
 
 catalog_kb = InlineKeyboardMarkup(row_width=2)
 catalog_kb.add(
