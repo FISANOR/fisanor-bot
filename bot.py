@@ -102,7 +102,7 @@ async def start_cmd(message: Message):
     await message.answer("Добро пожаловать в FISANOR-market! Выберите действие:", reply_markup=main_kb)
 
 # Каталог
-@router.message(Text(contains="Каталог"))
+@router.message(F.text.contains(["Каталог", "🛍 Каталог"]))
 async def show_catalog(message: Message):
     if not await check_subscriptions(message.from_user.id):
         await message.answer("Пожалуйста, подпишитесь на наши каналы, чтобы просматривать каталог и получить бесплатную доставку по Узбекистану!\n\nНажмите на кнопку \"📣 Каналы\" и подпишитесь на все каналы.")
