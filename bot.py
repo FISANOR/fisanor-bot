@@ -102,7 +102,7 @@ async def start_cmd(message: Message):
     await message.answer("Добро пожаловать в FISANOR-market! Выберите действие:", reply_markup=main_kb)
 
 # Каталог
-@router.message(F.text.contains(["Каталог", "🛍 Каталог"]))
+@router.message(F.text.contains("🛍 Каталог"))
 async def show_catalog(message: Message):
     if not await check_subscriptions(message.from_user.id):
         await message.answer("Пожалуйста, подпишитесь на наши каналы, чтобы просматривать каталог и получить бесплатную доставку по Узбекистану!\n\nНажмите на кнопку \"📣 Каналы\" и подпишитесь на все каналы.")
@@ -118,7 +118,7 @@ async def show_channels(message: Message):
     await message.answer(text)
 
 # Показываем товары
-@router.callback_query(F.data.startswith("cat_"))
+@router.callback_query(F.data.startswith("cat_Каталог"))
 async def show_products(callback: CallbackQuery):
     category = callback.data
     items = products.get(category, [])
