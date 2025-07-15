@@ -1,5 +1,9 @@
 import asyncio
+import logging
+
 from aiogram import Bot, Dispatcher, types, Router, F
+from aiogram.enums.chat_member_status import ChatMemberStatus
+from aiogram.filters import Command
 from aiogram.types import (
     Message,
     InlineKeyboardMarkup,
@@ -8,10 +12,22 @@ from aiogram.types import (
     KeyboardButton,
     CallbackQuery
 )
-import logging
 
 API_TOKEN = "8138203975:AAE-q7SaDll1TOuFfB-inw3VsEjSowFlASM"
 ADMIN_ID = 5410641725
+
+# Каналы для подписки
+CHANNELS = [
+    "https://t.me/fisanor_market",
+    "https://t.me/FISANOR_market_homeaccs",
+    "https://t.me/FISANOR_marketplace_official"
+]
+
+CHANNEL_USERNAMES = [
+    "fisanor_market",
+    "FISANOR_market_homeaccs",
+    "FISANOR_marketplace_official"
+]
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,7 +42,8 @@ dp.include_router(router)
 main_kb = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🛍 Каталог"), KeyboardButton(text="📦 Корзина")],
-        [KeyboardButton(text="🚚 Доставка и оплата"), KeyboardButton(text="📞 Поддержка")]
+        [KeyboardButton(text="🚚 Доставка и оплата"), KeyboardButton(text="📞 Поддержка")],
+        [KeyboardButton(text="📣 Каналы")]
     ],
     resize_keyboard=True
 )
@@ -61,6 +78,14 @@ products = {
 
 user_cart = {}
 
+# Проверка подписки
+async def check_subscriptions(user_id):
+    for channel in CHANNEL_USERNAMES:
+        chat_member = await bot.get_chat_member(chat_id=channel, user_id=user_id)
+        if chat_member.status not in [ChatMemberStatus.MEMBER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+            return False
+    return True
+
 # /start
 @router.message(F.text == "/start")
 async def start_cmd(message: Message):
@@ -70,20 +95,47 @@ async def start_cmd(message: Message):
 # Каталог
 @router.message(F.text == "🛍 Каталог")
 async def show_catalog(message: Message):
+    if not await check_subscriptions(message.from_user.id):
+        await message.answer("Пожалуйста, подпишитесь на наши каналы, чтобы просматривать каталог и получить бесплатную доставку по Узбекистану!\n\nНажмите на кнопку \"📣 Каналы\" и подпишитесь на все каналы.")
+        return
     await message.answer("Выберите категорию:", reply_markup=catalog_kb)
+
+# Кнопка "Каналы"
+@router.message(F.text == "📣 Каналы")
+async def show_channels(message: Message):
+    text = "Подпишитесь на наши каналы, чтобы получить бесплатную доставку по Узбекистану:\n\n"
+    for url in CHANNELS:
+        text += f"👉 {url}\n"
+    await message.answer(text)
 
 # Показываем товары
 @router.callback_query(F.data.startswith("cat_"))
 async def show_products(callback: CallbackQuery):
     category = callback.data
     items = products.get(category, [])
+
     for item in items:
         button = InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton(text="Добавить в корзину", callback_data=f"add_{item['name']}")]
             ]
         )
-        await callback.message.answer(f"🛒 {item['name']}: {item['price']} сум", reply_markup=button)
+
+        # Если товар — пистолет массажёр, отправляем с фото
+        if item["name"] == "Пистолет массажёр":
+            photo_url = "https://cdn.openai.com/chat-assets/user-uploads/file_00000000eecac86e45a5d6a6c36ddc1a.png"
+            await callback.message.answer_photo(
+                photo=photo_url,
+                caption=f"🛒 {item['name']}\n💵 Цена: {item['price']} сум",
+                reply_markup=button
+            )
+        else:
+            # Остальные товары — текстом
+            await callback.message.answer(
+                f"🛒 {item['name']}\n💵 Цена: {item['price']} сум",
+                reply_markup=button
+            )
+
     await callback.answer()
 
 # Добавление в корзину
@@ -110,7 +162,8 @@ async def show_cart(message: Message):
 async def delivery_info(message: Message):
     await message.answer(
         "Вы можете выбрать доставку до дома или самовывоз по адресу: https://maps.app.goo.gl/V3MN6X1xiSPTSVEi6\n"
-        "\n💳 Оплата на карту: 4023 0605 0832 1527 (Abduxakimov Xasan Botiro'vich)"
+        "\n💳 Оплата на карту: 4023 0605 0832 1527 (Abduxakimov Xasan Botiro'vich)\n\n"
+        "⏱ Срок доставки: 14–25 дней\n💰 Минимальный заказ: 140 000 сум"
     )
 
 # Поддержка
@@ -126,9 +179,14 @@ async def support_info(message: Message):
 async def handle_order(message: Message):
     items = user_cart.get(message.from_user.id, [])
     if items:
+        if not await check_subscriptions(message.from_user.id):
+            await message.answer("Пожалуйста, подпишитесь на все каналы, чтобы оформить заказ. Нажмите \"📣 Каналы\" и подпишитесь.")
+            return
+
         order_text = f"🛒 Новый заказ от @{message.from_user.username or 'без ника'} (ID: {message.from_user.id}):\n"
         order_text += "\n".join(f"- {item}" for item in items)
         order_text += f"\n\n📍 Адрес: {message.text}"
+
         await bot.send_message(ADMIN_ID, order_text)
         await message.answer("✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.")
         user_cart[message.from_user.id] = []
