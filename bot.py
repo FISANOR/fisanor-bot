@@ -9,7 +9,7 @@ ADMIN_ID = 5410641725
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
 # --- Категории ---
 main_kb = ReplyKeyboardMarkup(resize_keyboard=True)
@@ -108,4 +108,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())
