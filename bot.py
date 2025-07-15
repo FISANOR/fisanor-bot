@@ -102,9 +102,8 @@ async def handle_order(message: types.Message):
         await bot.send_message(ADMIN_ID, order_text)
         await message.answer("✅ Ваш заказ отправлен! Мы свяжемся с вами в ближайшее время.")
         user_cart[message.from_user.id] = []
-else:
+    else:
         await message.answer("Пожалуйста, выберите товары из каталога.")
-import asyncio
 
 async def main():
     await dp.start_polling(bot)
