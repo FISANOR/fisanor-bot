@@ -1,17 +1,28 @@
-import logging
 import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram import Bot, Dispatcher, types, Router, F
+from aiogram.types import (
+    Message,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    CallbackQuery
+)
+import logging
 
-API_TOKEN = '8138203975:AAE-q7SaDll1TOuFfB-inw3VsEjSowFlASM'
+API_TOKEN = "8138203975:AAE-q7SaDll1TOuFfB-inw3VsEjSowFlASM"
 ADMIN_ID = 5410641725
 
 logging.basicConfig(level=logging.INFO)
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
+router = Router()
 
-# --- Категории ---
+# Регистрируем router
+dp.include_router(router)
+
+# Клавиатура
 main_kb = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🛍 Каталог"), KeyboardButton(text="📦 Корзина")],
@@ -32,7 +43,7 @@ catalog_kb = InlineKeyboardMarkup(
     ]
 )
 
-# --- Товары ---
+# Продукты
 products = {
     "cat_electronics": [
         {"name": "Пистолет массажёр", "price": 450000},
@@ -50,34 +61,42 @@ products = {
 
 user_cart = {}
 
-@dp.message_handler(commands=['start'])
-async def start_cmd(message: types.Message):
+# /start
+@router.message(F.text == "/start")
+async def start_cmd(message: Message):
     user_cart[message.from_user.id] = []
     await message.answer("Добро пожаловать в FISANOR-market! Выберите действие:", reply_markup=main_kb)
 
-@dp.message_handler(lambda m: m.text == "🛍 Каталог")
-async def show_catalog(message: types.Message):
+# Каталог
+@router.message(F.text == "🛍 Каталог")
+async def show_catalog(message: Message):
     await message.answer("Выберите категорию:", reply_markup=catalog_kb)
 
-@dp.callback_query_handler(lambda c: c.data.startswith('cat_'))
-async def show_products(callback: types.CallbackQuery):
+# Показываем товары
+@router.callback_query(F.data.startswith("cat_"))
+async def show_products(callback: CallbackQuery):
     category = callback.data
     items = products.get(category, [])
     for item in items:
-        button = InlineKeyboardMarkup()
-        button.add(InlineKeyboardButton("Добавить в корзину", callback_data=f"add_{item['name']}"))
-        await bot.send_message(callback.from_user.id, f"🛒 {item['name']}: {item['price']} сум", reply_markup=button)
+        button = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Добавить в корзину", callback_data=f"add_{item['name']}")]
+            ]
+        )
+        await callback.message.answer(f"🛒 {item['name']}: {item['price']} сум", reply_markup=button)
     await callback.answer()
 
-@dp.callback_query_handler(lambda c: c.data.startswith('add_'))
-async def add_to_cart(callback: types.CallbackQuery):
+# Добавление в корзину
+@router.callback_query(F.data.startswith("add_"))
+async def add_to_cart(callback: CallbackQuery):
     item_name = callback.data[4:]
     user_id = callback.from_user.id
     user_cart.setdefault(user_id, []).append(item_name)
     await callback.answer(f"Товар '{item_name}' добавлен в корзину!")
 
-@dp.message_handler(lambda m: m.text == "📦 Корзина")
-async def show_cart(message: types.Message):
+# Корзина
+@router.message(F.text == "📦 Корзина")
+async def show_cart(message: Message):
     items = user_cart.get(message.from_user.id, [])
     if not items:
         await message.answer("Ваша корзина пуста.")
@@ -86,22 +105,25 @@ async def show_cart(message: types.Message):
     cart_text += "\n\nЧтобы оформить заказ, напишите свой адрес и имя."
     await message.answer(cart_text)
 
-@dp.message_handler(lambda m: m.text == "🚚 Доставка и оплата")
-async def delivery_info(message: types.Message):
+# Оплата
+@router.message(F.text == "🚚 Доставка и оплата")
+async def delivery_info(message: Message):
     await message.answer(
         "Вы можете выбрать доставку до дома или самовывоз по адресу: https://maps.app.goo.gl/V3MN6X1xiSPTSVEi6\n"
         "\n💳 Оплата на карту: 4023 0605 0832 1527 (Abduxakimov Xasan Botiro'vich)"
     )
 
-@dp.message_handler(lambda m: m.text == "📞 Поддержка")
-async def support_info(message: types.Message):
+# Поддержка
+@router.message(F.text == "📞 Поддержка")
+async def support_info(message: Message):
     await message.answer(
         "По любым вопросам обращайтесь в поддержку:\n"
         "@fisanor_admin (亗.乂.丫.匚.八.|–|.亗)\n@fisanor (Xasan) — 24/7 на связи"
     )
 
-@dp.message_handler()
-async def handle_order(message: types.Message):
+# Заказ
+@router.message()
+async def handle_order(message: Message):
     items = user_cart.get(message.from_user.id, [])
     if items:
         order_text = f"🛒 Новый заказ от @{message.from_user.username or 'без ника'} (ID: {message.from_user.id}):\n"
@@ -113,9 +135,9 @@ async def handle_order(message: types.Message):
     else:
         await message.answer("Пожалуйста, выберите товары из каталога.")
 
+# Запуск
 async def main():
     await dp.start_polling(bot)
 
-if __name__ == "__main__":
-    import asyncio
+if name == "main":
     asyncio.run(main())
