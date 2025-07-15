@@ -63,8 +63,16 @@ catalog_kb = InlineKeyboardMarkup(
 # Продукты
 products = {
     "cat_electronics": [
-        {"name": "Пистолет массажёр", "price": 450000},
-        {"name": "Наушники", "price": 150000}
+        {
+            "name": "Пистолет массажёр",
+            "price": 450000,
+            "photo": "https://i.imgur.com/sRPfAmq.jpeg"
+        },
+        {
+            "name": "Наушники",
+            "price": 150000,
+            "photo": "https://i.imgur.com/kP2j2NU.jpeg"  # пример, можешь поменять
+        }
     ],
     "cat_cosmetics": [
         {"name": "Маска для лица", "price": 35000},
