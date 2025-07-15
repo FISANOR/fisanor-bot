@@ -205,5 +205,21 @@ async def handle_order(message: Message):
 async def main():
     await dp.start_polling(bot)
 
+import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
+class PingHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'Bot is running!')
+
+def run_ping_server():
+    server = HTTPServer(('0.0.0.0', 10000), PingHandler)
+    server.serve_forever()
+
+# Запускаем фейковый сервер в отдельном потоке
+threading.Thread(target=run_ping_server).start()
+
 if __name__ == "__main__":
     asyncio.run(main())
