@@ -20,11 +20,16 @@ main_kb = ReplyKeyboardMarkup(
     resize_keyboard=True
 )
 
-catalog_kb = InlineKeyboardMarkup(row_width=2)
-catalog_kb.add(
-    InlineKeyboardButton("Электроника", callback_data="cat_electronics"),
-    InlineKeyboardButton("Косметика", callback_data="cat_cosmetics"),
-    InlineKeyboardButton("Товары для дома", callback_data="cat_home")
+catalog_kb = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Электроника", callback_data="cat_electronics"),
+            InlineKeyboardButton(text="Косметика", callback_data="cat_cosmetics")
+        ],
+        [
+            InlineKeyboardButton(text="Товары для дома", callback_data="cat_home")
+        ]
+    ]
 )
 
 # --- Товары ---
